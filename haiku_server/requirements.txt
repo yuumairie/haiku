@@ -23,3 +23,7 @@ requests==2.24.0
 six==1.15.0
 sqlparse==0.3.1
 urllib3==1.25.11
+
+# settings.pyのMIDDLEWARE(WhiteNoiseMiddleware)がDEBUGの値に関わらず常に
+# importされるため、本番専用のrequirements-prod.txtではなくこちらに置く。
+whitenoise==6.6.0

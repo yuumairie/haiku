@@ -1,0 +1,21 @@
+# 本番用（ECS Fargate向け）。開発用Dockerfileと異なり、バックエンドのみを
+# 含む最小限のイメージにする。フロントエンドは別途ビルドしてS3+CloudFrontに
+# 配置する（.github/workflows/deploy.yml 参照）。
+FROM python:3.8-slim
+
+WORKDIR /app
+
+COPY haiku_server/requirements.txt haiku_server/requirements-prod.txt ./
+RUN pip install --no-cache-dir -r requirements-prod.txt
+
+COPY haiku_server/ ./
+
+# Django adminの静的ファイルをwhitenoise用にビルドしておく。
+# この時点ではDBに接続しないため、RDSの起動を待つ必要はない。
+RUN python manage.py collectstatic --noinput
+
+EXPOSE 8000
+
+# マイグレーションはここでは実行しない。デプロイパイプライン側でECS RunTaskとして
+# 明示的に1回だけ実行する運用にしている（.github/workflows/deploy.yml 参照）。
+CMD ["gunicorn", "drfapi.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2"]

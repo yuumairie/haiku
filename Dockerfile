@@ -5,7 +5,12 @@
 # ではインストールしない)。このプロジェクトのビルド環境ではapt-getで何か新しい
 # パッケージを入れようとすると、dpkgのパッケージ展開処理自体が毎回落ちてしまう
 # 問題があったため、apt-getを一切使わない構成にして回避している。
-FROM node:16-bookworm-slim AS node_base
+#
+# Node 22 (2026年10月現在のActive/Maintenance LTS。Node 20は2026年4月でEOL済み)。
+# Vitest 1.x系 ≒ VS CodeのVitest拡張機能(vitest.explorer)がテストサイドバーに
+# 表示するための要件(Node >=18)を満たすために上げた。以前はNode 16だったが、
+# それに合わせてVitestも0.34系に下げていたため拡張機能がテストを検出できなかった。
+FROM node:22-bookworm-slim AS node_base
 
 FROM python:3.8-slim
 

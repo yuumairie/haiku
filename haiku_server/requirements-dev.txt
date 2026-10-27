@@ -10,3 +10,7 @@ pylint-django==2.3.0
 pylint-plugin-utils==0.6
 toml==0.10.1
 wrapt==1.12.1
+
+# pytest / pytest-django: バックエンドのテスト実行用。
+pytest==7.4.4
+pytest-django==4.5.2

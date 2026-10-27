@@ -8,12 +8,14 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
+        "ms-python.debugpy",
         "ms-python.vscode-pylance",
         "ms-python.autopep8",
         "Vue.volar",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "eamodio.gitlens"
+        "eamodio.gitlens",
+        "vitest.explorer"
       ],
       "settings": {
         "editor.formatOnSave": true,

@@ -55,6 +55,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
   'django.middleware.security.SecurityMiddleware',
+  # 本番(ECS Fargate)でDjango admin用の静的ファイルを配信するために使う。
+  # ローカル開発ではDEBUG=Trueなのでrunserverが別経路で静的ファイルを配信する。
+  'whitenoise.middleware.WhiteNoiseMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware',
   'django.middleware.common.CommonMiddleware',
   'django.middleware.csrf.CsrfViewMiddleware',
@@ -165,5 +168,21 @@ AUTH_USER_MODEL = 'api.User'
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = Path.joinpath(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_ROOT = Path.joinpath(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# 本番(ECS Fargate)ではコンテナのローカルディスクが再デプロイ・再起動のたびに
+# 消えるため、AWS_STORAGE_BUCKET_NAMEが設定されている場合はメディアファイル
+# (アバター画像など)をS3に保存する。ローカル開発ではこの環境変数を設定しない
+# ので、従来通りMEDIA_ROOT配下のローカルディスクに保存される。
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'ap-northeast-1')
+
+if AWS_STORAGE_BUCKET_NAME:
+  DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+  AWS_S3_FILE_OVERWRITE = False
+  AWS_DEFAULT_ACL = None
+  AWS_QUERYSTRING_AUTH = False

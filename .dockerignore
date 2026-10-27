@@ -5,3 +5,5 @@
 **/node_modules
 haiku_front/dist
 _to_delete_root
+infra
+haiku_server/staticfiles

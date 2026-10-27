@@ -17,6 +17,19 @@
 __pycache__/
 *.py[cod]
 media/
+staticfiles/
+
+# Terraform (infra/) - コード自体はコミットするが、state・ビルド産物・
+# 実際の認証情報を含みうるtfvarsは除外する
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+infra/envs/*/terraform.tfvars
+infra/**/build/
 
 # Node / Vue (haiku_front)
 node_modules/

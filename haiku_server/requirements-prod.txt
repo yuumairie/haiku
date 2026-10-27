@@ -1,0 +1,8 @@
+-r requirements.txt
+
+# 本番(ECS Fargate)でのみ必要な追加パッケージ。
+# whitenoiseはsettings.py側で常にimportされるため、共通のrequirements.txtに
+# 移動済み(ここには置かない)。
+gunicorn==21.2.0
+django-storages==1.13.2
+boto3==1.34.162
