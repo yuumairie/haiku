@@ -118,6 +118,8 @@ class Haiku(models.Model):
   season = models.CharField(
       max_length=10, choices=SEASON_CHOICES, blank=True, null=True
   )
+  # 公開範囲。Falseの場合は投稿者本人以外には一覧・検索・詳細のいずれにも表示しない
+  is_public = models.BooleanField(default=True)
 
 
 class Comment(models.Model):

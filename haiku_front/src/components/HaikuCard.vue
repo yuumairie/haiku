@@ -1,5 +1,6 @@
 <template>
   <div class="haiku" :class="seasonClass">
+    <div v-if="haiku.isPublic === false" class="private-badge">非公開</div>
     <div class="content" ref="contentRef" @click="clickContent(haiku.id)">
       <div class="main" :style="mainStyle">{{ haiku.content }}</div>
       <div class="poster-name" @click.stop="goToProfile(haiku.userPost.id)">
@@ -11,7 +12,7 @@
     </div>
     <div class="footer">
       <div class="meta">
-        <span class="time">{{ haiku.created_at }}</span>
+        <span class="time">{{ haiku.createdAt }}</span>
       </div>
       <div class="good-area">
         <span class="heart" v-if="isNotLoginUser">
@@ -156,7 +157,7 @@ export default defineComponent({
       return 0;
     };
 
-    const clickGood = (isGood: boolean, id: string, goodUserList?: Array<UserModel>): void => {
+    const clickGood = (isGood: boolean, id: string): void => {
       const data = {
         user: state.userId,
         haiku: id,
@@ -301,6 +302,21 @@ export default defineComponent({
     ),
     linear-gradient(180deg, #fff3cf 0%, #f6dd9b 100%);
   border-color: #d4af37;
+}
+
+.haiku .private-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #6b5d45;
+  background: #efe9dd;
+  border: 1px solid #d8c9a3;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
 }
 
 /* 吊り紐っぽい上部のアクセント */

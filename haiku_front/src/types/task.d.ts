@@ -12,10 +12,11 @@ export interface HaikuModel {
     avatar?: string | null;
   };
   content?: string;
-  created_at?: string;
+  createdAt?: string;
   good?: Array<UserModel>;
   kigo?: string | null;
   season?: string | null;
+  isPublic?: boolean;
 }
 
 export interface GoodModel {

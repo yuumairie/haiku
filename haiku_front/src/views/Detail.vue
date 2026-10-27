@@ -18,6 +18,10 @@
       季語: {{ state.haiku.kigo }}（{{ state.haiku.season }}）
     </div>
 
+    <div v-if="state.haiku.isPublic === false" class="visibility-badge">
+      非公開（自分のみ閲覧可）
+    </div>
+
     <div
       v-if="jwt && state.haiku.userPost.id !== userId"
       class="follow-badge"
@@ -69,9 +73,10 @@ export default defineComponent({
     const router = useRouter();
 
     const state = reactive({
-      // content/created_at/goodは任意項目のためここでは初期化せず、
-      // APIから取得した実データで埋める（created_atはAPI側のキー名に合わせているため
-      // ここでは宣言しない＝camelcase警告を避ける）
+      // content/createdAt/goodは任意項目のためここでは初期化せず、
+      // APIから取得した実データで埋める
+      // （snake_case⇄camelCaseの変換はaxiosのインターセプタ(main.ts)が行うため、
+      //  ここではAPIのキー名を気にせずcamelCaseだけを書けばよい）
       haiku: {
         id: 0,
         userPost: {
@@ -387,6 +392,18 @@ export default defineComponent({
   color: #4a6b3b;
   background: #eef3e6;
   border: 1px solid #c9d8bb;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.detail-page .visibility-badge {
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #6b5d45;
+  background: #efe9dd;
+  border: 1px solid #d8c9a3;
   border-radius: 999px;
   padding: 3px 10px;
   white-space: nowrap;

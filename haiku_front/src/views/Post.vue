@@ -43,6 +43,11 @@
 
     <div class="char-count">{{ contentLength }} / 50</div>
 
+    <label class="visibility-row">
+      <input type="checkbox" v-model="state.isPrivate" class="visibility-checkbox" />
+      <span class="visibility-label">非公開にする（自分だけに表示）</span>
+    </label>
+
     <div class="post-actions">
       <button class="post-button" :disabled="!contentLength" @click="post()">投函</button>
     </div>
@@ -89,6 +94,8 @@ export default defineComponent({
     const router = useRouter();
     const state = reactive({
       haikuContent: '',
+      // 公開範囲。チェックを入れると自分だけに表示される（非公開）
+      isPrivate: false,
     });
 
     //JWT
@@ -134,6 +141,7 @@ export default defineComponent({
       }
       const data = {
         content: state.haikuContent,
+        isPublic: !state.isPrivate,
       };
       const headers = {
         'Content-Type': 'application/json',
@@ -259,6 +267,24 @@ export default defineComponent({
   font-size: 12px;
   color: #8a7c62;
   letter-spacing: 1px;
+}
+
+.visibility-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  cursor: pointer;
+}
+
+.visibility-checkbox {
+  cursor: pointer;
+}
+
+.visibility-label {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #6b3b2e;
 }
 
 .post-actions {

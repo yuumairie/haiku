@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 from rest_framework.permissions import (
   IsAuthenticated,
@@ -64,8 +65,13 @@ class GoodViewSet(viewsets.ModelViewSet):
   queryset = Good.objects.all()
   serializer_class = serializers.GoodSerializer
   permission_classes = (IsAuthenticatedOrReadOnly,)
-  # def get_queryset(self):
-  #   return self.queryset.filter(user=self.request.user)
+
+  def get_queryset(self):
+    # 非公開の句についた「ゆかし」は、その句自体が見えない人には見せない
+    user = self.request.user
+    if user.is_authenticated:
+      return Good.objects.filter(Q(haiku__is_public=True) | Q(haiku__userPost=user))
+    return Good.objects.filter(haiku__is_public=True)
 
 
 def _detect_kigo(content):
@@ -94,7 +100,15 @@ class HaikuViewSet(viewsets.ModelViewSet):
   DEFAULT_LIMIT = 100
 
   def get_queryset(self):
-    queryset = Haiku.objects.all().order_by('-created_at')
+    # 非公開(is_public=False)の句は投稿者本人にしか見せない。
+    # (一覧・検索・詳細・更新・削除の全てがこのget_querysetを経由するため、
+    #  ここで絞り込むだけで他人の非公開句にはどの経路からも到達できなくなる)
+    user = self.request.user
+    if user.is_authenticated:
+      queryset = Haiku.objects.filter(Q(is_public=True) | Q(userPost=user))
+    else:
+      queryset = Haiku.objects.filter(is_public=True)
+    queryset = queryset.order_by('-created_at')
 
     # ?userPost=<ユーザID> で投稿者を絞り込めるようにする
     user_id = self.request.query_params.get('userPost')
@@ -155,7 +169,15 @@ class CommentViewSet(viewsets.ModelViewSet):
   queryset = Comment.objects.all()
 
   def get_queryset(self):
-    queryset = Comment.objects.all().order_by('id')
+    # 非公開の句についたコメントは、その句自体が見えない人には見せない
+    user = self.request.user
+    if user.is_authenticated:
+      queryset = Comment.objects.filter(
+          Q(post__is_public=True) | Q(post__userPost=user)
+      )
+    else:
+      queryset = Comment.objects.filter(post__is_public=True)
+    queryset = queryset.order_by('id')
 
     # ?post=<俳句ID> でその句へのコメントだけに絞り込めるようにする
     post_id = self.request.query_params.get('post')

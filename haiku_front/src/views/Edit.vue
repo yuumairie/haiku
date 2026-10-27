@@ -70,6 +70,11 @@
     </div>
     <div v-if="state.kigoError" class="kigo-error">{{ state.kigoError }}</div>
 
+    <label class="visibility-row">
+      <input type="checkbox" v-model="state.isPrivate" class="visibility-checkbox" />
+      <span class="visibility-label">非公開にする（自分だけに表示）</span>
+    </label>
+
     <div class="post-actions">
       <button class="post-button" :disabled="!contentLength" @click="update()">更新</button>
     </div>
@@ -121,6 +126,8 @@ export default defineComponent({
       kigo: '',
       season: '',
       kigoError: '',
+      // 公開範囲。チェックを入れると自分だけに表示される（非公開）
+      isPrivate: false,
     });
 
     //JWT
@@ -172,6 +179,7 @@ export default defineComponent({
           state.haikuContent = limitContent(req.data.content);
           state.kigo = req.data.kigo || '';
           state.season = req.data.season || '';
+          state.isPrivate = req.data.isPublic === false;
         })
         .catch((err) => {
           console.error(err);
@@ -196,6 +204,7 @@ export default defineComponent({
         content: state.haikuContent,
         kigo: state.kigo.trim() || null,
         season: state.season || null,
+        isPublic: !state.isPrivate,
       };
       const headers = {
         'Content-Type': 'application/json',
@@ -360,7 +369,7 @@ export default defineComponent({
 }
 
 .kigo-input {
-  width: 110px;
+  width: 165px;
   padding: 4px 8px;
   font-family: 'Shippori Mincho', serif;
   font-size: 13px;
@@ -387,6 +396,24 @@ export default defineComponent({
   font-size: 12px;
   color: #9c2f24;
   letter-spacing: 1px;
+}
+
+.visibility-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  cursor: pointer;
+}
+
+.visibility-checkbox {
+  cursor: pointer;
+}
+
+.visibility-label {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #6b3b2e;
 }
 
 .post-actions {

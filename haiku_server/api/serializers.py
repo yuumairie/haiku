@@ -77,6 +77,7 @@ class HaikuWriteSerializer(serializers.ModelSerializer):
         'good',
         'kigo',
         'season',
+        'is_public',
     )
     extra_kwargs = {
         'userPost': {'read_only': True},
@@ -84,6 +85,8 @@ class HaikuWriteSerializer(serializers.ModelSerializer):
         # 編集時はユーザが画面上で編集できる。
         'kigo': {'required': False, 'allow_null': True, 'allow_blank': True},
         'season': {'required': False, 'allow_null': True, 'allow_blank': True},
+        # 省略時はモデルのdefault(True=公開)が使われる
+        'is_public': {'required': False},
     }
 
   def validate(self, data):
@@ -116,6 +119,7 @@ class HaikuReadSerializer(serializers.ModelSerializer):
         'good',
         'kigo',
         'season',
+        'is_public',
     )
     extra_kwargs = {'userPost': {'read_only': True}}
 
