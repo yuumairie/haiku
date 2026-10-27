@@ -6,10 +6,10 @@ from . import models
 
 class UserAdmin(BaseUserAdmin):
   ordering = ['id']
-  list_display = ['email']
+  list_display = ['email', 'username']
   fieldsets = (
       (None, {'fields': ('email', 'password')}),
-      (_('personal Info'), {'fields': ()}),
+      (_('personal Info'), {'fields': ('username',)}),
       (
           _('permissions'),
           {
@@ -24,9 +24,10 @@ class UserAdmin(BaseUserAdmin):
   )
   add_fieldsets = (
       (None, {'classes': ('wide',), 'fields': (
-          'email', 'password', 'password2')}),
+          'email', 'password', 'password2', 'username')}),
   )
 
 
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Haiku)
+admin.site.register(models.Kigo)
