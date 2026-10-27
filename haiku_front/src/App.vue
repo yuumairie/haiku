@@ -2,41 +2,55 @@
   <div class="root">
     <header id="nav">
       <h1 class="nav-bar" @click="goToHome()">
-        <img style="height: 20px" :src="require('@/assets/images/クラーケン.png')" />Uknown<img
-          style="height: 20px"
-          :src="require('@/assets/images/ギャング.png')"
-        />
+        <img class="header-image" :src="require('@/assets/images/ヘッダ2.png')" />
       </h1>
       <div class="icons">
-        <router-link to="/register">
+        <router-link to="/register" v-if="!jwt">
           <div class="icon">
             <img style="height: 20px" :src="require('@/assets/images/登録.png')" />
             新規登録
           </div></router-link
         >
-        <router-link to="/login">
+        <router-link to="/login" v-if="!jwt">
           <div class="icon">
             <img style="height: 20px" :src="require('@/assets/images/ログイン.png')" />
             ログイン
           </div></router-link
         >
+        <router-link to="/myprofile" v-if="jwt"> <div class="icon">プロフィール</div></router-link>
+        <div class="icon logout" v-if="jwt" @click="logout()">ログアウト</div>
       </div>
     </header>
-    <router-view />
-    <div class="footer">Copyright © 2020 Inc. Co., Ltd., All Rights Unreserved.</div>
+    <div class="content">
+      <router-view />
+      <div class="footer">Copyright © 2020 Inc. Co., Ltd., All Rights Unreserved.</div>
+    </div>
   </div>
 </template>
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { computed, defineComponent } from 'vue';
 import { useRouter } from '../src/router';
+import { MutationTypes, useStore } from './store';
 
 export default defineComponent({
   setup() {
+    const store = useStore();
+    const router = useRouter();
+    const jwt = computed(() => {
+      return store.getters.getToken;
+    });
+
     const goToHome = () => {
-      const router = useRouter();
       router.push('/home');
     };
-    return { goToHome };
+
+    //ログアウト
+    const logout = () => {
+      store.commit(MutationTypes.LOGOUT);
+      router.push('/home');
+    };
+
+    return { goToHome, logout, jwt };
   },
 });
 </script>
@@ -48,13 +62,19 @@ export default defineComponent({
   text-align: center;
   color: #2c3e50;
 }
+.header-image {
+  width: 100%;
+  height: 40px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
 #app #nav {
   position: fixed;
   background-color: floralwhite;
   color: black;
   text-align: left;
-  height: 90px;
-  background-image: url('../src/assets/images/brain-2029391_1280.png');
+  height: 40px;
   width: 100%;
   margin: 0;
   top: 0;
@@ -62,35 +82,37 @@ export default defineComponent({
   border-bottom: black 2px solid;
   opacity: 0.9;
   z-index: 1030;
+  display: flex;
+  align-items: center;
 }
 #nav .btn {
   background-color: white;
   color: black;
 }
 #nav .nav-bar {
-  margin-top: 0;
   cursor: pointer;
-  width: 200px;
-  position: relative;
-  top: 20px;
-  left: 40px;
 }
 #nav .icon {
   width: 98px;
   margin-right: 15px;
 }
+#nav .icon.logout {
+  cursor: pointer;
+}
 #nav .icons {
-  position: absolute;
-  top: 60px;
   display: flex;
-  right: 5px;
+  margin-left: auto;
+}
+.content {
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 50px);
 }
 .footer {
-  position: relative;
-  top: 130px;
-  height: 50px;
   background-color: aliceblue;
-  padding-top: 26px;
+  padding: 7px 0;
   text-align: center;
+  margin-top: auto;
 }
 </style>

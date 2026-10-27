@@ -16,6 +16,7 @@
 # Python (haiku_server)
 __pycache__/
 *.py[cod]
+media/
 
 # Node / Vue (haiku_front)
 node_modules/

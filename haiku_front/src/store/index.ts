@@ -10,7 +10,40 @@ import {
   createLogger,
 } from 'vuex';
 import axios from 'axios';
-import { GoodModel } from '../types/task.d';
+import { GoodModel, FollowModel } from '../types/task.d';
+
+// リロードしてもログイン状態を保持するためのlocalStorageキー
+const JWT_STORAGE_KEY = 'haiku_jwt';
+
+const loadStoredToken = (): string => {
+  try {
+    return localStorage.getItem(JWT_STORAGE_KEY) || '';
+  } catch (e) {
+    console.error(e);
+    return '';
+  }
+};
+
+const persistToken = (token: string): void => {
+  try {
+    localStorage.setItem(JWT_STORAGE_KEY, token);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const clearStoredToken = (): void => {
+  try {
+    localStorage.removeItem(JWT_STORAGE_KEY);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+// ホーム画面（皆の句）で選択中のタブ。戻るボタンで画面に戻った時にも
+// 選択していたタブを復元できるよう、コンポーネントのローカル状態ではなく
+// ストアで持つ
+export type HomeTab = 'new' | 'following' | 'liked';
 
 export type State = {
   name: string;
@@ -18,33 +51,46 @@ export type State = {
   jwt: string;
   userId: number;
   goodList: Array<GoodModel>;
+  followList: Array<FollowModel>;
+  homeTab: HomeTab;
 };
 const state: State = {
   name: '',
   email: '',
-  jwt: '',
+  // 起動時にlocalStorageに保存済みのJWTがあれば復元する
+  jwt: loadStoredToken(),
   userId: 0,
   goodList: [],
+  followList: [],
+  homeTab: 'new',
 };
 
 export enum MutationTypes {
   LOGIN = 'LOGIN',
+  LOGOUT = 'LOGOUT',
   GOOD = 'GOOD',
+  FOLLOW_LIST = 'FOLLOW_LIST',
+  SET_HOME_TAB = 'SET_HOME_TAB',
 }
 export enum ActionTypes {
   LOGIN = 'LOGIN',
   GOOD = 'GOOD',
+  FOLLOW_LIST = 'FOLLOW_LIST',
 }
 
 export type Mutations<S = State> = {
   [MutationTypes.LOGIN](state: S, payload: string): void;
+  [MutationTypes.LOGOUT](state: S): void;
   [MutationTypes.GOOD](state: S, payload: Array<GoodModel>): void;
+  [MutationTypes.FOLLOW_LIST](state: S, payload: Array<FollowModel>): void;
+  [MutationTypes.SET_HOME_TAB](state: S, payload: HomeTab): void;
 };
 
 const mutations: MutationTree<State> & Mutations = {
-  // login mutation
+  // login mutation（画面ロード時の復元でも使う）
   [MutationTypes.LOGIN](state: State, payload: string) {
     state.jwt = payload;
+    persistToken(payload);
     const headers = {
       'Content-Type': 'application/json',
       Authorization: `JWT ${payload}`,
@@ -55,15 +101,54 @@ const mutations: MutationTree<State> & Mutations = {
       })
       .then((res) => {
         state.userId = res.data[0].id;
+        // 自分がフォローしているユーザ一覧を取得する（userId確定後に行う）
+        axios
+          .get('/api/follows/', {
+            headers: headers,
+            params: { follower: state.userId },
+          })
+          .then((followRes) => {
+            state.followList = followRes.data;
+          })
+          .catch((followErr) => {
+            console.error(followErr);
+          });
       })
       .catch((err) => {
         console.error(err);
+        // トークンが無効・期限切れの場合はログイン状態をクリアする
+        state.jwt = '';
+        state.userId = 0;
+        clearStoredToken();
       });
+  },
+
+  // logout mutation
+  [MutationTypes.LOGOUT](state: State) {
+    state.jwt = '';
+    state.userId = 0;
+    state.name = '';
+    state.email = '';
+    state.goodList = [];
+    state.followList = [];
+    // 購読中・いいねタブはログイン前提のため、ログアウト時は新着に戻す
+    state.homeTab = 'new';
+    clearStoredToken();
   },
 
   // good mutation
   [MutationTypes.GOOD](state: State, payload: Array<GoodModel>) {
     state.goodList = payload;
+  },
+
+  // follow list mutation
+  [MutationTypes.FOLLOW_LIST](state: State, payload: Array<FollowModel>) {
+    state.followList = payload;
+  },
+
+  // ホーム画面のタブ選択状態を保持するmutation
+  [MutationTypes.SET_HOME_TAB](state: State, payload: HomeTab) {
+    state.homeTab = payload;
   },
 };
 
@@ -84,6 +169,8 @@ export interface Actions {
   ): void;
 
   [ActionTypes.GOOD]({ commit }: AugmentedActionContext): void;
+
+  [ActionTypes.FOLLOW_LIST]({ commit }: AugmentedActionContext): void;
 }
 
 export const actions: ActionTree<State, State> & Actions = {
@@ -119,11 +206,32 @@ export const actions: ActionTree<State, State> & Actions = {
         console.error(err);
       });
   },
+
+  // follow list action（フォロー・フォロー解除のたびに最新化する）
+  [ActionTypes.FOLLOW_LIST]({ commit }) {
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `JWT ${state.jwt}`,
+    };
+    axios
+      .get('/api/follows/', {
+        headers: headers,
+        params: { follower: state.userId },
+      })
+      .then((res) => {
+        commit(MutationTypes.FOLLOW_LIST, res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  },
 };
 export type Getters = {
   getToken(state: State): string;
   getUserId(state: State): number;
   getGoodList(state: State): Array<GoodModel>;
+  getFollowList(state: State): Array<FollowModel>;
+  getHomeTab(state: State): HomeTab;
 };
 
 export const getters: GetterTree<State, State> & Getters = {
@@ -135,6 +243,12 @@ export const getters: GetterTree<State, State> & Getters = {
   },
   getGoodList: (state) => {
     return state.goodList;
+  },
+  getFollowList: (state) => {
+    return state.followList;
+  },
+  getHomeTab: (state) => {
+    return state.homeTab;
   },
 };
 

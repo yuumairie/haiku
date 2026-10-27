@@ -1,13 +1,13 @@
 openapi: 3.0.0
 info:
-  title: Unknown
+  title: Haiku
   version: 1.0.0
-servers: 
+servers:
   - url: http://192.168.3.12:8080/v1
 paths:
   /haikus:
-    get: 
-      tags: 
+    get:
+      tags:
         - haikus
       summary: "俳句情報API"
       description: "投稿された俳句の一覧を返します"
@@ -16,19 +16,19 @@ paths:
           in: query
           description: "検索したいキーワード"
           required: false
-          schema: 
+          schema:
             type: string
       responses:
-        '200':
+        "200":
           description: A JSON array of Haiku model
           content:
             application/json:
-              schema: 
+              schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Haiku'
+                  $ref: "#/components/schemas/Haiku"
     post:
-      tags: 
+      tags:
         - haikus
       summary: 俳句投稿API
       description: 俳句を投稿します
@@ -38,7 +38,7 @@ paths:
             schema:
               type: object
               properties:
-                userId: 
+                userId:
                   type: integer
                 content:
                   type: string
@@ -48,7 +48,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Haiku'
+                $ref: "#/components/schemas/Haiku"
       security:
         - bearer: []
   /users:
@@ -74,7 +74,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
 components:
   securitySchemes:
     bearer:
@@ -96,7 +96,7 @@ components:
         id:
           type: integer
         userPost:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
         content:
           type: string
         created_at:
@@ -106,4 +106,4 @@ components:
           type: array
           description: "この投稿をいいねしたユーザー一覧"
           items:
-            $ref: '#/components/schemas/User'
+            $ref: "#/components/schemas/User"
